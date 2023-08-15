@@ -26,7 +26,7 @@ public class Person {
     @Column(name = "phone_number")
     private String phoneNumber;
     @Column(name = "city_of_living")
-    private String cityOfLiving;
+    private String city;
 
 
 }
