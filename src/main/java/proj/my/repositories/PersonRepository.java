@@ -26,4 +26,7 @@ public interface PersonRepository extends JpaRepository<Person, PersonID> {
     @Query("select p from persons p where p.name = :name and p.surname = :surname")
     List<Optional<Person>> getPersonByNameAndSurname(@Param("name") String name, @Param("surname") String surname);
 
+    @Transactional
+    @Query("select p from persons p where p.name = :name")
+    List<Optional<Person>> getPersonByUsername(@Param("name") String name);
 }

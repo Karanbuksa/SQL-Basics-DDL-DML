@@ -1,10 +1,13 @@
 package proj.my.controller;
 
+import jakarta.annotation.security.RolesAllowed;
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Controller;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import proj.my.entities.Person;
 import proj.my.repositories.PersonRepository;
 
@@ -13,13 +16,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 
-@Controller
+@RestController
 @AllArgsConstructor
 public class PersonController {
     private PersonRepository personRepository;
 
     @GetMapping("/persons/by-city")
-    public @ResponseBody String getPersonsByCity(@RequestParam("city") String city) {
+    @Secured("ROLE_READ")
+    public String getPersonsByCity(@RequestParam("city") String city) {
         return personRepository.getPersonByCity(city)
                 .stream()
                 .map(Person::toString)
@@ -27,7 +31,8 @@ public class PersonController {
     }
 
     @GetMapping("/persons/by-age-sorted")
-    public @ResponseBody String getPersonsByAgeOrder(@RequestParam("age") int age) {
+    @RolesAllowed("WRITE")
+    public String getPersonsByAgeOrder(@RequestParam("age") int age) {
         return personRepository.getPersonByAgeLessThanOrderByAgeAsc(age)
                 .stream()
                 .map(Person::toString)
@@ -35,7 +40,14 @@ public class PersonController {
     }
 
     @GetMapping("/persons/by-name-and_surname-optional")
-    public @ResponseBody List<Optional<Person>> getPersonsByNameAndSurname(@RequestParam("name") String name, @RequestParam("surname") String surname) {
+    @PostAuthorize("hasAnyRole('WRITE','DELETE')")
+    public List<Optional<Person>> getPersonsByNameAndSurname(@RequestParam("name") String name, @RequestParam("surname") String surname) {
         return personRepository.getPersonByNameAndSurname(name, surname);
+    }
+
+    @GetMapping("/persons/by-username")
+    @PreAuthorize("#username == authentication.principal.username")
+    public List<Optional<Person>> getPersonsByUsername(@RequestParam("username") String username) {
+        return personRepository.getPersonByUsername(username);
     }
 }
